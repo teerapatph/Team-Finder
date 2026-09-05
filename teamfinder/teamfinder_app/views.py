@@ -29,7 +29,8 @@ def is_requestable(user, post_id):
     major_list = [major.name for major in requirement.req_major.all()]
     faculty_check = user.faculty in faculty_list or "Any" in faculty_list
     major_check = user.major in major_list or "Any" in major_list
-    year_check = user.year in list(range(requirement.year_min, requirement.year_max+1))
+    user_year = user.year if user.year is not None else 1
+    year_check = user_year in list(range(requirement.year_min, requirement.year_max+1))
     requestable = faculty_check | major_check & year_check
 
     return requestable
@@ -43,6 +44,85 @@ def homepage(request):
 def about(request):
     return render(request, 'about.html')
 
+DEMO_PERSONAS = {
+    'leader': {
+        'username': 'alex_lead',
+        'password': 'password123',
+        'name': 'Alex Chen',
+        'faculty': 'Engineering',
+        'major': 'Software Engineering',
+        'year': 3,
+        'bio': 'Full-stack developer & Team Lead passionate about AI hackathons and web apps.',
+    },
+    'applicant': {
+        'username': 'sarah_app',
+        'password': 'password123',
+        'name': 'Sarah Jenkins',
+        'faculty': 'Architecture & Design',
+        'major': 'UI/UX Design',
+        'year': 2,
+        'bio': 'UI/UX designer looking for exciting hackathon projects to build intuitive product interfaces.',
+    },
+    'david': {
+        'username': 'david_ai',
+        'password': 'password123',
+        'name': 'David Kim',
+        'faculty': 'Science',
+        'major': 'Data Science & AI',
+        'year': 4,
+        'bio': 'ML engineer with focus on computer vision and real-time sensor analytics.',
+    },
+    'admin': {
+        'username': 'admin',
+        'password': 'password123',
+        'name': 'System Administrator',
+        'faculty': 'Engineering',
+        'major': 'Computer Engineering',
+        'year': 4,
+        'bio': 'Administrator account with full project visibility and moderation access.',
+    }
+}
+
+def get_or_create_demo_user(role='leader'):
+    persona = DEMO_PERSONAS.get(role, DEMO_PERSONAS['leader'])
+    user = User.objects.filter(username=persona['username']).first()
+    if not user:
+        user = User.objects.create_user(
+            username=persona['username'],
+            password=persona['password'],
+            name=persona['name'],
+            major=persona['major'],
+            faculty=persona['faculty'],
+            year=persona['year']
+        )
+        if persona['username'] == 'admin':
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
+            
+        UserProfile.objects.get_or_create(
+            user=user,
+            defaults={'bio': persona['bio']}
+        )
+        Faculty.objects.get_or_create(
+            name=persona['faculty'],
+            slug=persona['faculty'].lower().replace(' ', '-'),
+            faculty=persona['faculty']
+        )
+        Major.objects.get_or_create(
+            name=persona['major'],
+            slug=persona['major'].lower().replace(' ', '-'),
+            major=persona['major']
+        )
+    return user
+
+def demo_login(request, role='leader'):
+    user = get_or_create_demo_user(role)
+    login(request, user)
+    next_url = request.GET.get('next', '/recruitment')
+    messages.success(request, f"Logged in as {user.name} ({role.title()}). Explore freely!")
+    return redirect(next_url)
+
 def web_login(request):
     if request.user.is_authenticated:
         return redirect('/myaccount')
@@ -51,34 +131,24 @@ def web_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        if username.isdigit() and len(username) == 10:
-            # Extract year logic
+        # 1. Authenticate against local Django User model (demo users, admin, local accounts)
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('/myaccount')
+
+        # 2. If student ID format (10 digits), try fallback to TU external API
+        if username and username.isdigit() and len(username) == 10:
             year = 67 - int(username[0:2]) + 1
-
-            # First, try to authenticate with Django's User model
-            user = authenticate(
-                request, 
-                username=username, 
-                password=password
-            )
-
-            # If user is authenticated
-            if user is not None:
-                login(request, user)
-                return redirect('/myaccount')
-
-            # If User does not exist
-            if User.objects.filter(username=username).first() == None:
-                # Try authenticating using the external API
+            if User.objects.filter(username=username).first() is None:
                 try:
                     tu_response = tu.auth(user=username, password=password)
                     status = tu_response.get("status")
                     data = tu_response.get("data")
 
                     if status == 200:
-                        # User doesn't exist, create them in Django
                         user = User.objects.create_user(
-                            username=username,  # Use 'username' as the unique identifier
+                            username=username,
                             password=password,
                             email_address=data.get("email"),
                             name=data.get("displayname_en"),
@@ -86,33 +156,22 @@ def web_login(request):
                             faculty=data.get("faculty"),
                             year=year,
                         )
-
                         user.save()
-
-                        # Create user profile
                         UserProfile.objects.create(user=user)
-
-                        # Handle faculty and major
-                        faculty = Faculty.objects.get_or_create(
+                        Faculty.objects.get_or_create(
                             name=data["faculty"], slug=data["faculty"], faculty=data["faculty"]
                         )
-
-                        major = Major.objects.get_or_create(
+                        Major.objects.get_or_create(
                             name=data["department"], slug=data["department"], major=data["department"]
                         )
-
-                        # Log the user in
                         user = authenticate(request, username=username, password=password)
                         login(request, user)
-
                         return redirect('/myaccount')
-            
                 except Exception as e:
                     messages.error(request, 'Error connecting to TU API')
                     print(f"Error during TU API authentication: {e}")
-   
+
             messages.error(request, 'Authentication failed. Invalid credentials.')
-        
         else:
             messages.error(request, 'Invalid username format.')
 
@@ -129,13 +188,15 @@ def myaccount(request):
     resultpost = ResultPost.objects.filter(post__user=user)
     feedback = Feedback.objects.filter(receiver=user)
 
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+
     if request.method == 'POST':
-        form = ProfileImageUploadForm(request.POST, request.FILES, instance=request.user.profile)
+        form = ProfileImageUploadForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()  # Save the updated UserProfile with the new image
             return redirect('/myaccount')  
     else:
-        form = ProfileImageUploadForm()
+        form = ProfileImageUploadForm(instance=profile)
     
     context = {
         "username": user.username,
@@ -221,18 +282,30 @@ def web_post(request, post_id):
     is_requested = Request.objects.filter(user=user, post=post).first()
     status = False
     requestable = False
+    tags = []
+    requirements = []
     
     if is_recruit:
         recruit = RecruitPost.objects.get(post=post)
         status = recruit.status
+        tags = recruit.tag.all()
+        requirements = Requirement.objects.filter(post=recruit)
         
         if status and not is_owner and not is_requested:
             requestable = is_requestable(user, post_id)
+    else:
+        result = ResultPost.objects.filter(post=post).first()
+        if result:
+            tags = result.tag.all()
 
     comments = PostComment.objects.filter(post=post).order_by('timestamp')
+    author_profile = UserProfile.objects.filter(user=post.user).first()
 
     context = {
         "post_id": post_id,
+        "post": post,
+        "author": post.user,
+        "author_profile": author_profile,
         "user": post.user,
         "heading": post.heading,
         "content": post.content,
@@ -242,7 +315,9 @@ def web_post(request, post_id):
         "status": status,
         "requestable": requestable,
         "is_requested": is_requested,
-        "comments": comments
+        "comments": comments,
+        "tags": tags,
+        "requirements": requirements
     }
 
     return render(request, 'post.html', context)
@@ -478,20 +553,26 @@ def teams(request):
 @login_required(login_url="/login")
 def team(request, team_id):
     user = request.user
-    team = Team.objects.get(team_id=team_id)
+    team = Team.objects.filter(team_id=team_id).first()
+    if not team:
+        return render(request, 'pagenotfound.html', status=404)
+
     members = [
         teammember.member for teammember in TeamMember.objects.filter(team=team)
     ]
     
-    if user not in members:
+    if user not in members and not user.is_staff and not user.username == 'admin':
         return render(request, 'pagenotfound.html', status=404)
 
     is_owner = team.team_leader == user
-    is_finish = team.recruit_post.finish
+    is_finish = team.recruit_post.finish if team.recruit_post else False
 
-    request_list = list(Request.objects.filter(post=team.recruit_post)) if is_owner else []
+    request_list = list(Request.objects.filter(post=team.recruit_post)) if is_owner and team.recruit_post else []
     
-    chat_group = ChatGroup.objects.get(team=team)
+    chat_group = ChatGroup.objects.filter(team=team).first()
+    if not chat_group:
+        chat_group = ChatGroup.objects.create(team=team, admin=team.team_leader)
+        chat_group.members.add(*members)
 
     context = {
         "team": team,
@@ -730,12 +811,25 @@ def search_result(request):
 #Profile
 @login_required(login_url="/login")
 def profile_page(request, username):
-    user = User.objects.filter(username=username).first()
+    target_user = User.objects.filter(username=username).first()
 
-    if not user:
+    if not target_user:
         return render(request, 'pagenotfound.html', status=404)
     
-    return render(request, 'profile_page.html', {'user': user})
+    profile, _ = UserProfile.objects.get_or_create(user=target_user)
+    created_posts = RecruitPost.objects.filter(post__user=target_user, status=True)
+    joined_teams = TeamMember.objects.filter(member=target_user)
+    feedbacks = Feedback.objects.filter(receiver=target_user)
+
+    context = {
+        'user': target_user,
+        'profile_user': target_user,
+        'profile': profile,
+        'created_posts': created_posts,
+        'joined_teams': joined_teams,
+        'feedbacks': feedbacks,
+    }
+    return render(request, 'profile_page.html', context)
 
 #Edit recruit
 @login_required(login_url="/login")

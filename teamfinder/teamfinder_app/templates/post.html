@@ -1,119 +1,492 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Post{% endblock %}
+{% block title %}{{ heading }} - TeamFinder{% endblock %}
+
 {% block head %}
-{% endblock %}
 <style>
-    .btn{
-        bottom: 20%;
-        right: 20%;
-        position: fixed;
+    .post-container {
+        max-width: 960px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .post-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .post-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .author-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .author-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 2px solid #fff;
+    }
+    .author-name {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1e293b;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .author-name:hover {
+        color: #c3002f;
+    }
+    .author-meta {
+        font-size: 0.85rem;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .post-body {
+        padding: 2rem;
+    }
+    .post-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 1rem;
+        line-height: 1.3;
+    }
+    .post-text {
+        font-size: 1.05rem;
+        line-height: 1.75;
+        color: #334155;
+        white-space: pre-line;
+    }
+    .post-tag {
+        display: inline-block;
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .post-tag:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .requirements-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        margin-top: 1.5rem;
+    }
+    .ownership-banner {
+        border-radius: 14px;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .banner-self {
+        background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
+        border-left: 5px solid #3b82f6;
+    }
+    .banner-other {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-left: 5px solid #64748b;
+    }
+    .comment-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #f1f5f9;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .comment-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .floating-action-bar {
+        position: sticky;
+        bottom: 1.5rem;
+        z-index: 100;
+        display: flex;
+        justify-content: flex-end;
+        pointer-events: none;
+    }
+    .floating-action-bar > * {
+        pointer-events: auto;
     }
 </style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-<div class="card border-dark m-25 mt-5 mb-5" style="">
-    <div class="card-header">{{heading}}</div>
-    <div class="card-body">
-      <h4 class="card-title">{{heading}}</h4>
-      <p class="card-text">{{content}}</p>
+<div class="post-container">
+
+    <!-- Top Navigation / Breadcrumb -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <a href="{% if is_recruit %}{% url 'recruitment' %}{% else %}{% url 'result' %}{% endif %}" class="btn btn-sm btn-outline-secondary rounded-pill d-inline-flex align-items-center gap-1">
+            <i class='bx bx-arrow-back'></i> 
+            <span>Back to {% if is_recruit %}Recruitment{% else %}Showcase{% endif %}</span>
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            {% if is_recruit %}
+                {% if status %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1">
+                        <i class='bx bxs-circle bx-xs text-success'></i> Open Recruitment
+                    </span>
+                {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1">
+                        <i class='bx bx-lock-alt'></i> Recruitment Closed
+                    </span>
+                {% endif %}
+            {% else %}
+                <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-1">
+                    <i class='bx bx-check-double'></i> Completed Project
+                </span>
+            {% endif %}
+        </div>
     </div>
-</div>
-</div>
-<section>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-5 col-md-6 col-12 pb-4">
-                <h1>Comments</h1>
-                {% for comment in comments %}
-                <div class="card border-dark mt-4 text-justify float-left">
-                    <div class="card-body">
-                    <h4 style="display: inline; text-transform: capitalize;">{{comment.user.name}}</h4>
-                    <span>{{comment.timestamp}}</span>
-                    <br>
-                    <p class="mt-2">{{comment.comment}}</p>
+
+    <!-- Clear Ownership Indicator Banner: Themselves vs Another Person -->
+    {% if is_owner %}
+    <div class="ownership-banner banner-self shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                <i class='bx bxs-user-check'></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-primary rounded-pill px-2.5 py-1" style="font-size: 0.8rem;">
+                        <i class='bx bxs-crown'></i> Your Post
+                    </span>
+                    <strong class="text-primary-emphasis">You are the author of this post</strong>
+                </div>
+                <div class="text-muted small mt-1">
+                    You have creator permissions. You can modify post content or manage recruitment status.
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {% if is_recruit %}
+                <form action="{% url 'toggle-status' post_id %}" method="post" class="d-inline mb-0">
+                    {% csrf_token %}
+                    {% if status %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                            <i class='bx bx-pause-circle'></i> Close Recruitment
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                            <i class='bx bx-play-circle'></i> Re-open Recruitment
+                        </button>
+                    {% endif %}
+                </form>
+                <a href="{% url 'edit_recruitment' post_id %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                    <i class='bx bx-edit'></i> Edit Post
+                </a>
+            {% else %}
+                <a href="{% url 'edit_result' post_id %}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1">
+                    <i class='bx bx-edit'></i> Edit Result
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="ownership-banner banner-other shadow-sm">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                <i class='bx bx-user'></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span class="badge bg-secondary rounded-pill px-2.5 py-1" style="font-size: 0.8rem;">
+                        <i class='bx bx-user-pin'></i> Author: {{ author.name|default:author.username }}
+                    </span>
+                    <span class="text-secondary fw-semibold">Posted by another student</span>
+                </div>
+                <div class="text-muted small mt-1">
+                    Logged in as: <strong>{{ request.user.name|default:request.user.username }}</strong>
+                    {% if is_requested %}
+                        • <span class="text-success fw-bold"><i class='bx bx-check-circle'></i> Application Submitted</span>
+                    {% elif requestable %}
+                        • <span class="text-primary fw-bold"><i class='bx bx-badge-check'></i> You meet criteria to apply</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <a href="/profile/{{ author.username }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1">
+                <i class='bx bx-user-circle'></i> View Profile
+            </a>
+            {% if is_requested %}
+                <button class="btn btn-success btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1" disabled>
+                    <i class='bx bx-check-circle'></i> Request Sent (Pending)
+                </button>
+            {% elif requestable %}
+                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#Modal">
+                    <i class='bx bx-paper-plane'></i> Request to Join
+                </button>
+            {% elif is_recruit and not status %}
+                <button class="btn btn-secondary btn-sm rounded-pill px-3" disabled>
+                    <i class='bx bx-lock-alt'></i> Recruitment Closed
+                </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main Post Content Card -->
+    <div class="post-card">
+        <!-- Author Header inside Post -->
+        <div class="post-header">
+            <div class="author-info">
+                <a href="/profile/{{ author.username }}">
+                    <img src="{{ author_profile.image_url|default:author.profile.image_url|default:'/media/images/fallback.png' }}" 
+                         onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                         alt="{{ author.username }}" 
+                         class="author-avatar">
+                </a>
+                <div>
+                    <div>
+                        <a href="/profile/{{ author.username }}" class="author-name">
+                            {{ author.name|default:author.username }}
+                        </a>
+                        {% if is_owner %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 0.75rem;">
+                                <i class='bx bxs-user-check'></i> You (Author)
+                            </span>
+                        {% else %}
+                            <span class="badge bg-light text-secondary border rounded-pill" style="font-size: 0.75rem;">
+                                <i class='bx bx-user'></i> Author
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="author-meta">
+                        <span><i class='bx bxs-graduation text-muted'></i> {{ author.faculty|default:'Thammasat' }} • {{ author.major|default:'General' }}{% if author.year %} • Year {{ author.year }}{% endif %}</span>
+                        <span>•</span>
+                        <span><i class='bx bx-time-five text-muted'></i> {{ timestamp|date:"M d, Y • H:i" }}</span>
                     </div>
                 </div>
+            </div>
+
+            <!-- Header Quick Badge -->
+            <div>
+                {% if is_owner %}
+                    <span class="badge bg-primary text-white rounded-pill px-3 py-2 shadow-sm d-inline-flex align-items-center gap-1">
+                        <i class='bx bx-shield-quarter'></i> Post Owner
+                    </span>
+                {% else %}
+                    <a href="/profile/{{ author.username }}" class="btn btn-sm btn-outline-primary rounded-pill d-inline-flex align-items-center gap-1">
+                        <i class='bx bx-id-card'></i> Author Profile
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Post Content Section -->
+        <div class="post-body">
+            <!-- Heading -->
+            <h1 class="post-title">{{ heading }}</h1>
+
+            <!-- Tags -->
+            {% if tags %}
+            <div class="d-flex flex-wrap gap-2 mb-4">
+                {% for tag in tags %}
+                    <span class="post-tag">#{{ tag.name }}</span>
                 {% endfor %}
             </div>
-            <div class="col-lg-4 col-md-5 col-sm-4 offset-md-1 offset-sm-1 col-12 mt-4">
-                <form method="POST" action="{% url 'comment' post_id %}">
-                    {% csrf_token %}
-                    <div class="form-group mb-5">
-                        <h4>Leave a comment</h4>
-                        <label for="message">Message</label>
-                        <textarea name='comment' id="comment" msg cols="30" rows="5" class="form-control" style="background-color: white;"></textarea>
+            {% endif %}
+
+            <!-- Main Body Text -->
+            <div class="post-text">
+                {{ content }}
+            </div>
+
+            <!-- Recruitment Requirements (if available) -->
+            {% if is_recruit and requirements %}
+            <div class="requirements-box">
+                <div class="d-flex align-items-center gap-2 mb-2 text-dark fw-bold">
+                    <i class='bx bx-list-check text-primary fs-5'></i>
+                    <span>Applicant Eligibility Requirements</span>
+                </div>
+                {% for req in requirements %}
+                    <div class="row g-2 small text-secondary">
+                        <div class="col-md-4">
+                            <strong>Target Faculties:</strong> 
+                            {% for f in req.req_faculty.all %}<span class="badge bg-white text-dark border">{{ f.name }}</span> {% empty %}<span>Any Faculty</span>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Target Majors:</strong> 
+                            {% for m in req.req_major.all %}<span class="badge bg-white text-dark border">{{ m.name }}</span> {% empty %}<span>Any Major</span>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Target Years:</strong> 
+                            <span>Year {{ req.year_min }} to Year {{ req.year_max }}</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <button type="summit" class="btn btn-secondary">Post Comment</button>
+                    {% if req.description %}
+                    <p class="small text-muted mt-2 mb-0"><strong>Role Details:</strong> {{ req.description }}</p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Comments & Discussion Section -->
+    <section class="mt-4">
+        <div class="row">
+            <!-- Comments List -->
+            <div class="col-lg-7 col-12 mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h3 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <i class='bx bx-comment-detail text-primary'></i> Discussion 
+                        <span class="badge bg-secondary-subtle text-secondary rounded-pill fs-6">{{ comments.count }}</span>
+                    </h3>
+                </div>
+
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="comment-card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ comment.user.profile.image_url|default:'/media/images/fallback.png' }}" 
+                                     onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                                     alt="{{ comment.user.username }}" 
+                                     class="comment-avatar">
+                                <div>
+                                    <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <a href="/profile/{{ comment.user.username }}" class="text-dark fw-bold text-decoration-none" style="font-size: 0.95rem;">
+                                            {{ comment.user.name|default:comment.user.username }}
+                                        </a>
+                                        
+                                        <!-- Author vs You badges in comments -->
+                                        {% if comment.user == author %}
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size: 0.7rem;">
+                                                <i class='bx bx-crown'></i> Author
+                                            </span>
+                                        {% endif %}
+                                        
+                                        {% if comment.user == request.user %}
+                                            <span class="badge bg-info-subtle text-dark border border-info-subtle rounded-pill" style="font-size: 0.7rem;">
+                                                You
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                        {{ comment.timestamp|date:"M d, Y • H:i" }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-secondary" style="font-size: 0.95rem; line-height: 1.6; white-space: pre-line; margin-left: 48px;">
+                            {{ comment.comment }}
+                        </div>
                     </div>
-                </form>
+                    {% endfor %}
+                {% else %}
+                    <div class="card border-0 p-4 text-center text-muted rounded-4 bg-white shadow-sm">
+                        <div class="mb-2"><i class='bx bx-message-rounded-dots fs-1 opacity-50'></i></div>
+                        <p class="mb-0">No comments yet. Be the first to leave a message!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Comment Input Box -->
+            <div class="col-lg-5 col-12">
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white sticky-top" style="top: 2rem;">
+                    <h4 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class='bx bx-edit text-primary'></i> Leave a Comment
+                    </h4>
+                    
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
+                        <img src="{{ request.user.profile.image_url|default:'/media/images/fallback.png' }}" 
+                             onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                             alt="{{ request.user.username }}" 
+                             style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+                        <div>
+                            <div class="text-dark fw-semibold small">{{ request.user.name|default:request.user.username }}</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">Commenting publicly</div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{% url 'comment' post_id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="comment" class="form-label small text-muted">Your Message</label>
+                            <textarea name='comment' id="comment" rows="4" class="form-control" placeholder="Ask a question or discuss the project with the author..." required style="resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 shadow-sm d-inline-flex align-items-center justify-content-center gap-1">
+                            <i class='bx bx-send'></i> Post Comment
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-
-<div class="modal" id="Modal">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Request Form</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true"></span>
-          </button>
-        </div>
-        <div class="modal-body">
-
-            <form method='POST' action="{% url 'request' post_id%}">
-            {% csrf_token %}
-            <textarea class = "form-control" id="message" name="message" rows="5" >{{ message|default:'' }}</textarea>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Send Request</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        </div>
-        </form>
-      </div>
-    </div>
 </div>
 
-{%if not is_owner and requestable %}
-    <div style="bottom: 10%; right: 10%; position:fixed;"> <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#Modal">
-    Request
-    </button></div>
-{%endif%}
-
-{%if is_owner and is_recruit %}
-    <div style="bottom: 10%; right: 10%; position:fixed;">
-    <form action="{% url 'toggle-status' post_id %}" method="post">
-        {% csrf_token %}
-        <button 
-            type="submit" 
-            class="{% if status %}btn btn-primary{% else %}btn btn-outline-primary{% endif %}">
-            {% if status %}Activate{% else %}Activate{% endif %}
-        </button>
-    </form>
+<!-- Modal for Join Request -->
+<div class="modal fade" id="Modal" tabindex="-1" aria-labelledby="ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        <i class='bx bx-paper-plane'></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark" id="ModalLabel">Request to Join Team</h5>
+                        <small class="text-muted">Send an application message to <strong>{{ author.name|default:author.username }}</strong></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method='POST' action="{% url 'request' post_id %}">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    <div class="alert alert-info-subtle border border-info-subtle rounded-3 small mb-3">
+                        <i class='bx bx-info-circle me-1'></i> The project leader will review your message and can accept you into their project team and private group chat.
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label fw-semibold text-dark small">Introduction / Why you want to join:</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" placeholder="Hi! I am interested in joining your project. I have experience with..." required>Hi! I would love to join your team. I have relevant skills and would be thrilled to collaborate on this project.</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm d-inline-flex align-items-center gap-1">
+                        <i class='bx bx-send'></i> Send Request
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-
-
-    <div style="bottom: 15%; right: 10%; position:fixed;">
-        <a href="{% url 'edit_recruitment' post_id %}">
-            <button class= "btn btn-light">
-                Edit Post
-            </button>
-        </a>
-    </div>
-{%endif%}
-
-{%if not is_recruit%}
-    <div style="bottom: 10%; right: 10%; position:fixed;">
-        <a href="{% url 'edit_result' post_id %}">
-            <button class= "btn btn-light">
-                Edit Post
-            </button>
-        </a>
-    </div>
-{%endif%}
-
-{%endblock%}
+</div>
+{% endblock %}
