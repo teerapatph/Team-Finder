@@ -39,13 +39,13 @@
 
                     <!--author-->
                     <div class="blog-author-text">
-                        <a href="/profile/{{post.post.user.username}}" target="_blank">
-                        {% if post.post.user.profile.profile_image %}
-                        <img src="{{ post.post.user.profile.profile_image.url }}" alt="{{ post.post.user.username }}'s Profile Picture" class="profile-pic">
-                        {% else %}
-                        <img src="/media/images/fallback.png" alt="Default Profile Picture" class="profile-pic">
-                        {% endif %}
-                        <strong>{{post.post.user.name}}</strong>
+                        <a href="/profile/{{post.post.user.username}}" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
+                        <img src="{{ post.post.user.profile.image_url|default:'/media/images/fallback.png' }}" 
+                             onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                             alt="{{ post.post.user.username }}" 
+                             class="profile-pic"
+                             style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;">
+                        <strong>{{post.post.user.name|default:post.post.user.username}}</strong>
                         </a>
                     </div>
                     <div class="blog-author" >

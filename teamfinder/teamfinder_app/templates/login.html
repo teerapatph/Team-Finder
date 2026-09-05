@@ -22,15 +22,53 @@
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}  
             <h1>Team Finder</h1>
-            <div class="input-box">
-                <input type="text" placeholder="Student ID" required name="username">
+            <p style="text-align: center; color: #555; font-size: 14px; margin-bottom: 20px;">Collaborative Team Formation Platform</p>
+
+            <!-- 1-Click Portfolio Demo Section -->
+            <div style="background: rgba(255, 255, 255, 0.95); border: 2px solid #ffd13f; border-radius: 16px; padding: 18px; margin-bottom: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-weight: 700; font-size: 13px; color: #8a1525; text-transform: uppercase; letter-spacing: 0.5px;">✨ Portfolio Demo Access</span>
+                    <span style="font-size: 11px; background: #e8f5e9; color: #2e7d32; font-weight: 600; padding: 2px 8px; border-radius: 12px;">No Password Needed</span>
+                </div>
+                
+                <a href="{% url 'demo_login' 'leader' %}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none; background: #c3002f; color: white; padding: 10px 16px; border-radius: 10px; margin-bottom: 10px; transition: transform 0.15s ease, background 0.15s ease;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">👑</span>
+                        <div style="text-align: left;">
+                            <div style="font-weight: 700; font-size: 14px;">Explore as Alex (Team Leader)</div>
+                            <div style="font-size: 11px; opacity: 0.9;">Manage teams, review join requests & chat</div>
+                        </div>
+                    </div>
+                    <i class='bx bx-right-arrow-alt' style="font-size: 20px;"></i>
+                </a>
+
+                <a href="{% url 'demo_login' 'applicant' %}" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none; background: #2b3a4a; color: white; padding: 10px 16px; border-radius: 10px; transition: transform 0.15s ease, background 0.15s ease;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 20px;">🚀</span>
+                        <div style="text-align: left;">
+                            <div style="font-weight: 700; font-size: 14px;">Explore as Sarah (Applicant)</div>
+                            <div style="font-size: 11px; opacity: 0.9;">Browse posts, submit requests & chat</div>
+                        </div>
+                    </div>
+                    <i class='bx bx-right-arrow-alt' style="font-size: 20px;"></i>
+                </a>
+            </div>
+
+            <div style="display: flex; align-items: center; margin: 15px 0; text-align: center;">
+                <div style="flex: 1; border-bottom: 1px solid #ccc;"></div>
+                <span style="padding: 0 10px; font-size: 12px; color: #777; text-transform: uppercase;">or sign in manually</span>
+                <div style="flex: 1; border-bottom: 1px solid #ccc;"></div>
+            </div>
+
+            <div class="input-box" style="margin: 15px 0;">
+                <input type="text" placeholder="Username or Student ID" required name="username">
                 <i class='bx bxs-user'></i>
             </div>
-            <div class="input-box">
+            <div class="input-box" style="margin: 15px 0;">
                 <input type="password" placeholder="Password" required name="password">
                 <i class='bx bxs-lock-alt' ></i>
             </div>
-                <button type="submit" class = "btn">Sign In</button>
+            <button type="submit" class = "btn" style="margin-top: 10px;">Sign In</button>
         </form>
     </div>
 </body>

@@ -33,12 +33,12 @@ SECRET_KEY = env('SECRET_KEY', default='d_!pw(@@t--ws-+tfi&$%68&=a8%4yu37@l0k8s^
 # SECURITY WARNING: don't run with debug turned on in production!
 if ENVIRONMENT == 'development':
     DEBUG = True
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '[::1]', '*']
 else:
     DEBUG = False
+    ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['teamfinder-x0ph.onrender.com', 'localhost'])
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'teamfinder-x0ph.onrender.com']
-
-CSRF_TRUSTED_ORIGINS = ['https://teamfinder-x0ph.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['https://teamfinder-x0ph.onrender.com', 'http://localhost:8000', 'http://127.0.0.1:8000']
 
 # Application definition
 
@@ -166,11 +166,22 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-CLOUDINARY_STORAGE = {
-    'CLOUDINARY_URL': env('CLOUDINARY_URL')
-}
+CLOUDINARY_URL = env('CLOUDINARY_URL', default=None)
+if CLOUDINARY_URL:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    CLOUDINARY_STORAGE = {
+        'CLOUDINARY_URL': CLOUDINARY_URL
+    }
+else:
+    import cloudinary
+    cloudinary.config(
+        cloud_name="teamfinder_demo",
+        api_key="111111111111111",
+        api_secret="dummy_secret_for_local_demo"
+    )
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

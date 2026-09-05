@@ -55,10 +55,14 @@
                         <h3>Team Members</h3>
                         <ul>
                             {% for member in members %}
-                                <p><a href="/profile/{{member.username}}" target="_blank">
-                                    {% if member.profile.profile_image %}
-                                    <img src="{{ member.profile.profile_image.url }}" alt="{{ member.username }}'s Profile Picture" class="profile-pic">
-                                    {%endif%}{{ member.name }}</a></p>
+                                <p><a href="/profile/{{member.username}}" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    <img src="{{ member.profile.image_url|default:'/media/images/fallback.png' }}" 
+                                         onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                                         alt="{{ member.username }}" 
+                                         class="profile-pic"
+                                         style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;">
+                                    <span>{{ member.name|default:member.username }}</span>
+                                </a></p>
                             {% empty %}
                                 <p>No members found.</p>
                             {% endfor %}
@@ -95,10 +99,14 @@
                     <div class="notification-list notification-list--unread">
                         <div class="notification-list_content">
                             <div class="notification-list_detail">
-                                <p><b><a href="/profile/{{request.user.username}}" target="_blank">
-                                    {% if request.user.profile.profile_image %}
-                                    <img src="{{ request.user.profile.profile_image.url }}" alt="{{ request.user.username }}'s Profile Picture" class="profile-pic">
-                                    {%endif%}{{request.user.name}}</b></a>  request to your post</p>
+                                <p><b><a href="/profile/{{request.user.username}}" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    <img src="{{ request.user.profile.image_url|default:'/media/images/fallback.png' }}" 
+                                         onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                                         alt="{{ request.user.username }}" 
+                                         class="profile-pic"
+                                         style="width: 30px; height: 30px; object-fit: cover; border-radius: 50%;">
+                                    <span>{{request.user.name|default:request.user.username}}</span>
+                                </a></b> request to your post</p>
                                 <p class="text-muted">{{request.message}}</p>
                             </div>
                         </div>

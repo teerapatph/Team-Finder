@@ -49,6 +49,20 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
+    @property
+    def image_url(self):
+        from django.conf import settings
+        # If a real Cloudinary URL is configured and this image is custom, return it
+        if getattr(settings, 'CLOUDINARY_URL', None) and self.profile_image:
+            try:
+                url = self.profile_image.url
+                if url and 'teamfinder_demo' not in url and 'dummy' not in url:
+                    return url
+            except Exception:
+                pass
+        return "/media/images/fallback.png"
+
+
 class Faculty(TagBase):
     faculty = models.TextField()
 
@@ -122,7 +136,4 @@ class Feedback(models.Model):
     technical_pt = models.IntegerField()
     empathy_pt = models.IntegerField()
     comment = models.TextField(blank=True)
-
-
-
-    
+

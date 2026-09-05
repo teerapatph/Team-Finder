@@ -15,7 +15,10 @@
             <h1>TEAMFINDER</h1>
             <h2>Thammasat University</h2>
             <p>You can form a team with other people from Thammasat University to make project or compete in competition by using Team Finder</p>
-            <a href="/myaccount" class="button">Go to website</a>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 15px;">
+                <a href="{% url 'demo_login' 'leader' %}" class="button" style="background-color: #c3002f; font-weight: 700; box-shadow: 0 4px 14px rgba(195,0,47,0.5);">⚡ Explore Demo (1-Click)</a>
+                <a href="/login" class="button" style="background-color: #ffd13f; color: #222; font-weight: 700;">Login Page</a>
+            </div>
         </div>
     </div>
 </body>

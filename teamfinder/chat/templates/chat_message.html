@@ -13,11 +13,10 @@
     </div>
     <div class="tw-flex tw-justify-start">
         <a href="/profile/{{message.author.username}}" target="_blank">
-            {% if message.author.profile.profile_image %}
-            <img src="{{ message.author.profile.profile_image.url }}" alt="{{ message.author.name }}'s Profile Picture" class="profile-pic">
-            {% else %}
-            <img src="/media/images/fallback.png" alt="Default Profile Picture" class="profile-pic">
-            {% endif %}
+            <img src="{{ message.author.profile.image_url|default:'/media/images/fallback.png' }}" 
+                 onerror="this.onerror=null; this.src='/media/images/fallback.png';" 
+                 alt="{{ message.author.name }}" 
+                 class="profile-pic">
         </a>
         <div class="tw-bg-gray-200 tw-px-4 tw-py-2 tw-max-w-[75%] tw-rounded-full">
             <span>{{ message.body }}</span>
