@@ -1,16 +1,17 @@
 body, html{
     height: 100%;
     margin: 0;
-    font-family: 'Open Sans', sans-serif;
+    font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 .background {
     position: absolute;
     height: 100%;
     width: 100%;
-    background-image: url("https://storage-wp.thaipost.net/2023/11/IMG_5749_0_0_0-1.jpg");
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.72) 100%), 
+                url("https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=2070&q=80");
     background-size: cover;
     background-position: center;
-    filter: brightness(0.7);
+    filter: brightness(0.95);
     z-index: -1;
 }
 .container{
@@ -21,31 +22,43 @@ body, html{
     margin: 3%;
 }
 .text-section {
-    max-width: 50%;
+    max-width: 55%;
 }
 .text-section h1 {
-    font-size: 53px;
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
     margin: 0;
     color: #ffd13f;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 .text-section h2 {
-    font-size: 32px;
-    color: #c3002f;
+    font-size: 30px;
+    font-weight: 700;
+    color: #ff6b6b;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 .text-section p {
     font-size: 20px;
+    line-height: 1.6;
     margin: 20px 0;
-    color:white;
+    color: #f1f5f9;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 .button {
     display: inline-block;
-    padding: 15px 25px;
+    padding: 14px 26px;
     background-color: #d8b235;
-    color:white;
+    color: white;
     border-radius: 12px;
-    text-decoration:none; 
+    text-decoration: none; 
     font-size: 16px; 
+    transition: all 0.25s ease;
 }
 .button:hover {
     background-color: #be4d00;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
 }
